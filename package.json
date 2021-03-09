@@ -1,0 +1,28 @@
+{
+  "name": "docker-php",
+  "version": "1.0.0",
+  "description": "Create different versions of PHP using Docker",
+  "scripts": {
+    "up": "./scripts/up.sh",
+    "laravel": "./scripts/up.sh laravel",
+    "bedrock": "./scripts/up.sh bedrock",
+    "down": "./scripts/down.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rosscueman/docker-php-stack.git"
+  },
+  "keywords": [
+    "docker",
+    "php"
+  ],
+  "author": "RossCue",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rosscueman/docker-php-stack/issues"
+  },
+  "homepage": "https://github.com/rosscueman/docker-php-stack#readme",
+  "dependencies": {
+    "docker-bash-scripts": "^1.0.0"
+  }
+}

@@ -1,0 +1,105 @@
+version: '3'
+
+networks:
+  local:
+
+services:
+  nginx:
+    image: ${NGINX_IMAGE}
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+    - ./src:/var/www/html
+    - ~/.docker/certs:/etc/nginx/certs
+    - ./config/nginx:/etc/nginx/conf.d
+    depends_on:
+      - php
+      - mysql
+    links:
+      - php
+    networks:
+      - local
+  composer:
+    image: ${COMPOSER_IMAGE}
+    container_name: composer
+    networks:
+      - local
+  node:
+    image: ${NODE_IMAGE}
+    container_name: node
+    networks:
+      - local
+  mysql:
+    image: ${MYSQL_IMAGE}
+    container_name: mysql
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "4306:3306"
+    volumes:
+    - ./config/mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    networks:
+      - local
+  redis:
+    image: ${REDIS_IMAGE}
+    container_name: redis
+    command: redis-server --requirepass password
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - local
+  php:
+    build:
+      context: .
+      args:
+        NODE_IMAGE: ${NODE_IMAGE}
+        PHP_IMAGE: ${PHP_IMAGE}
+      dockerfile: Dockerfile
+    container_name: php
+    volumes:
+      - ./src/localhost.test:/var/www/html/localhost.test:delegated
+      - ./config/ssh:/root/.ssh
+      - ./node_modules/docker-bash-scripts/scripts/container:/usr/local/scripts
+      - ./config/supervisor:/etc/supervisor/conf.d
+    ports:
+      - "9000:9000"
+    depends_on:
+      - composer
+      - node
+    links:
+      - composer
+    networks:
+      - local
+  php_api:
+    build:
+      context: .
+      args:
+        NODE_IMAGE: ${NODE_IMAGE}
+        PHP_IMAGE: ${PHP_IMAGE}
+      dockerfile: Dockerfile
+    container_name: php_api
+    volumes:
+      - ./src/api.localhost.test:/var/www/html/api.localhost.test:delegated
+      - ./config/ssh:/root/.ssh
+      - ./node_modules/docker-bash-scripts/scripts/container:/usr/local/scripts
+      - ./config/supervisor:/etc/supervisor/conf.d
+    ports:
+      - "9001:9000"
+    depends_on:
+      - composer
+      - node
+    links:
+      - composer
+      - php
+    networks:
+      - local
